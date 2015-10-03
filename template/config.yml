@@ -1,19 +1,19 @@
 site:
-    title: InkPaper
-    subtitle: An Elegant Static Blog Generator
-    logo: -/images/avatar.jpg
+    title: 生活∙编码日记
+    subtitle: keep it simple and stupid.
+    logo: -/images/tizzybec.jpg
     limit: 10
     theme: theme
-    disqus: somebody
-    lang: en
-    url: http://www.inkpaper.io/blog/
+    disqus: tizzybec
+    lang: zh
+    url: http://tizzybec.github.io/
     # root: /blog
 
 authors:
     me:
-        name: InkPaper
-        intro: An Elegant Static Blog Generator
-        avatar: -/images/avatar.jpg
+        name: tizzybec
+        intro: c++码农，haskell/clojure学习中...
+        avatar: -/images/tizzybec.jpg
 
 build:
     port: 8000
@@ -26,6 +26,10 @@ build:
         - source/images
     # Excuted command when use 'ink publish'
     publish: |
+        from_oath=~/Github/go/src/github.com/tizzybec/ink/template/public/
+        to_path=~/Github/tizzybec.github.io
+        cp -RP $from_oath $to_path
+        cd $to_path
         git add . -A
         git commit -m "update"
         git push origin
