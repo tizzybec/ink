@@ -611,6 +611,10 @@ a.name {
 .footer .copyright {
   float: left;
 }
+.footer .license {
+  float: right;
+  padding: 0;
+}
 .footer .publish {
   float: right;
 }

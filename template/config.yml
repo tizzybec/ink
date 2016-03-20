@@ -1,18 +1,18 @@
 site:
-    title: 生活∙编码日记
-    subtitle: keep it simple and stupid.
+    title: tizzybec@weibo
+    subtitle: 但行好事，莫问前程.
     logo: -/images/tizzybec.jpg
     limit: 10
     theme: theme
     disqus: tizzybec
     lang: zh
-    url: http://tizzybec.github.io/
+    url: http://www.tizzybec.com/
     # root: /blog
 
 authors:
     me:
         name: tizzybec
-        intro: c++码农，haskell/clojure学习中...
+        intro: c++程序员，haskell/luajit学习中...
         avatar: -/images/tizzybec.jpg
 
 build:
@@ -26,9 +26,9 @@ build:
         - source/images
     # Excuted command when use 'ink publish'
     publish: |
-        from_oath=~/Github/go/src/github.com/tizzybec/ink/template/public/
-        to_path=~/Github/tizzybec.github.io
-        cp -RP $from_oath $to_path
+        export from_path=~/Github/go/src/github.com/tizzybec/ink/template/public/
+        export to_path=~/Github/tizzybec.github.io/
+        cp -RP $from_path $to_path
         cd $to_path
         git add . -A
         git commit -m "update"
