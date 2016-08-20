@@ -1,6 +1,6 @@
 site:
-    title: tizzybec@weibo
-    subtitle: 但行好事，莫问前程.
+    title: tizzybec的博客
+    subtitle: 但行好事，莫问前程
     logo: -/images/tizzybec.jpg
     limit: 10
     theme: theme
@@ -31,5 +31,5 @@ build:
         cp -RP $from_path $to_path
         cd $to_path
         git add . -A
-        git commit -m "update"
-        git push origin
+        git commit -am "update"
+        git push origin master

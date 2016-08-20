@@ -356,7 +356,7 @@ def foo[A](f: A => List[A], i: Int) = f(i)
 
 ``` scala
 template <typename A>
-A foo(std::list<A> (const *f)(A), const A &i) {
+std::list<A> foo(std::list<A> (const *f)(A), const A &i) {
     return f(i);
 }
 ```
@@ -438,7 +438,7 @@ public static <T> void copy(List<? super T> dest, List<? extends T> src)
 ...
 ```
 
-理解和协变确定了泛型的上界，逆变确定了类型的下界，逆变和协变基本就理解清楚了
+理解了协变确定了泛型的上界，逆变确定了类型的下界，逆变和协变基本就理解清楚了
 
 回到scala的协变和逆变，举一个scala内置单参数函数的trait定义
 
@@ -489,7 +489,7 @@ val add2 = adder(2, _:Int)
 
 通常带有map方法的类型构造器就是一个函子。
 
-**自函子（endfunctor）：**将范畴映射到自身的单子。
+**自函子（endfunctor）：**将范畴映射到自身的函子。
 
 **单子（monad）：**自函子范畴上的一个幺半群。
 
