@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?><feed xmlns="http://www.w3.org/2005/Atom">
+  <title>tizzybec的博客</title>
+  <id>http://www.tizzybec.com/</id>
+  <updated>2016-08-20T16:43:09+08:00</updated>
+  <subtitle>但行好事，莫问前程</subtitle>
+  <link href="http://www.tizzybec.com/"></link>
+  <author>
+    <name>tizzybec的博客</name>
+  </author>
+  <entry>
+    <title>使用mongoose构建web服务器</title>
+    <updated>2016-08-20T12:00:00+08:00</updated>
+    <id>tag:,2016-08-20:/www.tizzybec.com/post/2016/08/20/use-mongoose-to-build-web-server.html</id>
+    <content type="html">&#xA;&#xA;最近在使用[mongoose](https://github.com/cesanta/mongoose)包装RESTful服务接口，内部系统是公司内部服务框架，通信协议都是二进制，每个服务的输入和输出都能自动绑定到JSON格式，和外部系统交互统一通过RESTful接口进行，在使用mongoose进行服务端和客户端基础库的包装时也发现这个库的一些不足。&#xA;&#xA;</content>
+    <link href="http:/www.tizzybec.com/post/2016/08/20/use-mongoose-to-build-web-server.html"></link>
+    <author>
+      <name>tizzybec</name>
+    </author>
+  </entry>
+  <entry>
+    <title>使用premake5进行项目生成</title>
+    <updated>2016-05-06T10:52:00+08:00</updated>
+    <id>tag:,2016-05-06:/www.tizzybec.com/post/2016/05/06/use-premake5-generate-projects.html</id>
+    <content type="html">&#xA;&#xA;最近在把之前写的YASS(Yet Another Simlation System)项目拆成三个部分，分别是tbcore、tbui和tbengine，YASS在win下使用vs2015（早期是2010）开发，构建系统是msbuild，这次拆分索性把项目生成这块好好做一下，开始考虑cmake，但看过文档后对cmake的dsl实在是望而生畏，所以只有使用经验没有编写经验，premake可以作为一个非常优秀的选择（不少开源项目在用）。&#xA;&#xA;</content>
+    <link href="http:/www.tizzybec.com/post/2016/05/06/use-premake5-generate-projects.html"></link>
+    <author>
+      <name>tizzybec</name>
+    </author>
+  </entry>
+  <entry>
+    <title>响应式编程随想（ReactiveX）</title>
+    <updated>2016-04-17T18:52:00+08:00</updated>
+    <id>tag:,2016-04-17:/www.tizzybec.com/post/2016/04/17/thinking-reactive-programming.html</id>
+    <content type="html">&#xA;&#xA;从学习react到reactivex，响应式编程风格越来越流行。&#xA;&#xA;</content>
+    <link href="http:/www.tizzybec.com/post/2016/04/17/thinking-reactive-programming.html"></link>
+    <author>
+      <name>tizzybec</name>
+    </author>
+  </entry>
+  <entry>
+    <title>对vue-desktop的进一步思考</title>
+    <updated>2016-04-05T23:11:00+08:00</updated>
+    <id>tag:,2016-04-05:/www.tizzybec.com/post/2016/04/05/rethink-vue-desktop.html</id>
+    <content type="html">&#xA;    &#xA;上周的xxx-native-deskop的思考是一个非常初级的想法，最近又结合虚幻引擎界面设计和vczh的GacUI的思路进行了进一步思考。&#xA;&#xA;</content>
+    <link href="http:/www.tizzybec.com/post/2016/04/05/rethink-vue-desktop.html"></link>
+    <author>
+      <name>tizzybec</name>
+    </author>
+  </entry>
+  <entry>
+    <title>关于 xxx-native-desktop 的思考</title>
+    <updated>2016-03-29T00:37:00+08:00</updated>
+    <id>tag:,2016-03-29:/www.tizzybec.com/post/2016/03/29/xxx-native-desktop.html</id>
+    <content type="html">&#xA;&#xA;最近在思考如何基于web开发方式做一个本地应用开发框架，兼具性能和开发体验。首先毙掉hybird app的方式，比如phonegap、titanium和electron这种方案，webview做的事情太多，很多环节不可控，同时无法和本地控件进行混合使用。&#xA;&#xA;</content>
+    <link href="http:/www.tizzybec.com/post/2016/03/29/xxx-native-desktop.html"></link>
+    <author>
+      <name>tizzybec</name>
+    </author>
+  </entry>
+  <entry>
+    <title>面向c++程序员的scala教程</title>
+    <updated>2016-03-20T22:49:00+08:00</updated>
+    <id>tag:,2016-03-20:/www.tizzybec.com/post/2016/03/20/scala-tutorial-for-cpp-programmer.html</id>
+    <content type="html">&#xA;&#xA;最近在研究finagle，打算先从scala语言开始学习。本文不能作为scala的入门教程，内容也不尽完善和准确，只是作为个人学习笔记之用。&#xA;&#xA;</content>
+    <link href="http:/www.tizzybec.com/post/2016/03/20/scala-tutorial-for-cpp-programmer.html"></link>
+    <author>
+      <name>tizzybec</name>
+    </author>
+  </entry>
+  <entry>
+    <title>C++动态初始化（Dynamic Initializer）</title>
+    <updated>2015-10-04T21:43:00+08:00</updated>
+    <id>tag:,2015-10-04:/www.tizzybec.com/post/2015/10/04/cpp-dynamic-initializer.html</id>
+    <content type="html"> &#xA;&#xA;之前看公司有人收集类元信息用的方法很巧妙，所以早就想写一篇关于动态初始化的博客，一则是想分享，二则是作为个人摘记。&#xA;&#xA;</content>
+    <link href="http:/www.tizzybec.com/post/2015/10/04/cpp-dynamic-initializer.html"></link>
+    <author>
+      <name>tizzybec</name>
+    </author>
+  </entry>
+  <entry>
+    <title>使用InkPaper搭建个人博客</title>
+    <updated>2015-10-04T11:33:00+08:00</updated>
+    <id>tag:,2015-10-04:/www.tizzybec.com/post/2015/10/04/build-blog-with-ink.html</id>
+    <content type="html">ink是一款简洁的静态博客构建工具，结合github pages能够快速搭建个人博客</content>
+    <link href="http:/www.tizzybec.com/post/2015/10/04/build-blog-with-ink.html"></link>
+    <author>
+      <name>tizzybec</name>
+    </author>
+  </entry>
+</feed>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=1, minimum-scale=1, maximum-scale=1">
+        <meta name="keywords" content="Vue,Vue-desktop,Skia,Vuejs,Qt,GacUI,Unreal Engine,">
+        <meta name="description" content="对vue-desktop的进一步思考">
+        <link rel="stylesheet" href="/css/index.css">
+        <link rel="stylesheet" href="/css/github.css">
+        <title>对vue-desktop的进一步思考</title>
+        <script>
+          var _hmt = _hmt || [];
+          (function() {
+            var hm = document.createElement("script");
+            hm.src = "//hm.baidu.com/hm.js?a873b1a598faa7a2c5f0b208b5a78578";
+            var s = document.getElementsByTagName("script")[0]; 
+            s.parentNode.insertBefore(hm, s);
+          })();
+        </script>
+    </head>
+    <body>
+        <article class="container">
+            <a class="index" href="/">tizzybec的博客</a>
+<ul class="menu">
+    <li class="menu-item"><a href="/archive.html">归档</a></li>
+    <li class="menu-item"><a href="/tag.html">标签</a></li>
+    
+    <li class="menu-item"><a href="/about.me.html">关于</a></li>
+</ul>
+
+            <article class="main article">
+                <h1 class="title">对vue-desktop的进一步思考</h1>
+                <section class="info">
+                    <span class="avatar" style="background-image: url(/images/tizzybec.jpg);"></span>
+                    <a class="name" href="/about.me.html">tizzybec</a>
+                    <span class="date" data-time="1459869060">
+                        <span class="from"></span>
+                        <span class="date" data-time="1459869060">(<span class="from"></span> 更新)</span>
+                    </span>
+                    <span class="tags"><a class="tag" href="/tag/Vue/index.html">Vue</a><a class="tag" href="/tag/Vue-desktop/index.html">Vue-desktop</a><a class="tag" href="/tag/Skia/index.html">Skia</a><a class="tag" href="/tag/Vuejs/index.html">Vuejs</a><a class="tag" href="/tag/Qt/index.html">Qt</a><a class="tag" href="/tag/GacUI/index.html">GacUI</a><a class="tag" href="/tag/Unreal%20Engine/index.html">Unreal Engine</a></span>
+                </section>
+                <article class="content"><p>上周的xxx-native-deskop的思考是一个非常初级的想法，最近又结合虚幻引擎界面设计和vczh的GacUI的思路进行了进一步思考。</p>
+
+<p>UI这块使用Qt最为后端的想法写完上篇之后就被我彻底摒弃了</p>
+
+<ol>
+<li>和Qt窗口很难作数据映射，和MVVM的方式适配起来比较麻烦</li>
+<li>如果这样做了可能就是另一个Qt Quick，但是quick这个东西实在是无感</li>
+<li>窗口系统不可控，这也是虚幻、chromium、火狐各家实现自己的窗口系统的原因</li>
+</ol>
+
+<p>后来又想用vczh的GacUI，去github速览了一下源码，GacUI的设计和特性无疑是优秀的，能满足MVVM的方式，但是还是过于复杂，且还有一些坑没填完（TODO），最终还是舍弃了。然后我在想，既然了解Qt和虚幻的窗口设计，又熟悉web这一套界面实现方式，为什么不自己造个轮子呢，如此一来，上述所有问题应该能徒手解决吧。</p>
+
+<p>但这个轮子也不是凭空造的（全部凭空造的那是轮子哥），还是必须借用一些三方库来实现这些，初步选型：</p>
+
+<ol>
+<li>脚本使用javascript，选择v8自然是没什么可说的了</li>
+<li>后端2D绘制选用skia（chromium和火狐在使用，有部分使用经验，绘制性能和效果都不错）</li>
+<li>前端vm库使用vuejs</li>
+<li>dom解析使用pugixml</li>
+<li>窗口系统和前端绑定自己实现，窗口体系参考html5标准，样式使用css-layout库</li>
+</ol>
+
+<p>这样我们就有了一个最小的webkit实现，同时拥有扩展本地控件的能力（比如地图这类复杂控件）。</p>
+
+<p><a href="http://novajs.com/index.html">nova.js</a>给出的一个web component的例子</p>
+
+<p>控件代码</p>
+
+<pre><code class="language-html">&lt;!-- 注册自定义元素&lt;markdown-editor&gt; --&gt;
+&lt;template is=&quot;dom-module&quot;&gt;
+    &lt;style&gt;
+        :host {display:block;padding:15px 20px;border:1px solid rgba(16,16,16,0.1);background:white;}
+        textarea { width:100%; height:100px; resize:none;padding:5px;}
+    &lt;/style&gt;
+    &lt;template&gt;
+        &lt;h3&gt;Markdown Editor&lt;/h3&gt;
+        &lt;textarea value=&quot;{{content::input}}&quot;&gt;&lt;/textarea&gt;
+        &lt;p&gt;&lt;/p&gt;
+    &lt;/template&gt;
+    &lt;script require-src=&quot;components/nova-markdown/marked&quot;&gt;&lt;/script&gt;
+    &lt;script&gt;
+        Nova({
+            is: 'markdown-editor',
+            props: {
+                content: {
+                    type: String,
+                    value: 'Hello Nova! '
+                }
+            },
+            createdHandler: function() {
+                this.on('_contentChanged', this.contentObserver);
+                this.render();
+            },
+            contentObserver: function(ev, oldVal, newVal) {
+                this.render();
+            },
+            render: function() {
+                this.querySelector('p').innerHTML = marked(this.content);
+            }
+        });
+    &lt;/script&gt;
+&lt;/template&gt;
+</code></pre>
+
+<p>使用Markdown控件</p>
+
+<pre><code class="language-html">&lt;markdown-editor content=&quot;# Hello \n Type some markdown here.&quot;&gt;&lt;/markdown-editor&gt;
+</code></pre>
+
+<p>vue-loader的一个例子</p>
+
+<p><img src="/images/loader.gif" data-src="/images/vue-component-with-pre-processors.png" alt="vue component template" /></p>
+
+<p>其实Qt Designer的思路和上面有点类似，.ui文件有点像web component的声明，在编译期通过uic编译器编译为本地代码，在ui开发体验和性能上都照顾到了，但是有几个问题</p>
+
+<ol>
+<li>忽略了数据的绑定过程，一旦生成界面文件(ui_xx.h，相当于view部分)，剩下的数据逻辑和显示逻辑几乎是混在在一块的，整个数据流在开发中没有很好的体现出来，当然Qt也提供Model模型，用于和View型的控件进行数据绑定，解耦显示和模型，实际用起来还是糅杂得比较紧密</li>
+<li>控件的复用度是通过提升来实现的，也就是首先在Designer中有对应的控件基类，然后提升到某个用户自定义控件类，所见即所得的ui设计方式有助于减少上手的简易性，却无法降低程序逻辑组织的复杂度</li>
+<li>显示样式没有和控件本身没有进行分离，导致部分样式设置放置在.ui文件中，部分放置在控件代码内（.ui文件的样式配置最终也是以代码的方式体现），显示配置没有很好地分离出来，导致修改主题要么重写style，要么使用支持有限的stylesheet，两者结合起来使用往往会出现和预期不一致的效果（这个看经验了）</li>
+</ol>
+
+<p>前面还没有提及对数据变化的管理，从目前前端去世来看，单一状态组件确实是比较好的思路，对于撤销重做这样的特性简直信手拈来 ，对于组件来说，有状态传入和传出，并不涉及对状态的直接修改，对于传出状态的回写需要在于状态管理方处理（store）。这点我后端的框架是能够非常好地支持，基本上前端的一些解决思路在现有的后端框架中都有所体现，所以前端这么玩也没有问题，部分对性能要求极高的部分可能还会放在后端来实现。</p>
+
+<p>前端主要负责显示逻辑，数据逻辑还是来自后端，前端可以通过js绑定的获取数据，后端会建立数据对象监视器，对新数据进行检测，初始化时前段根据数据类型编写数据模板填充代码，进行首次渲染，后端出现数据变化，会触发前段数据变化通知回调，前段再根据变化编写对象的显示变化代码。</p>
+
+<p>使用web作为前段主要是为了调试和编写方便，应用发布的理想方式是在正式发布前将前段代码转换为c++代码（根据js的ast树进行代码转换），这部分工作依赖性能测试的结果，如果性能在可接受的范围内，可以忽略代码转换，如果需要将性能提升到机制，那么在代码转换这块必须作出投入来减少开发便利带来的性能损失。</p>
+</article>
+                <section class="author">
+                    <div class="avatar" style="background-image: url(/images/tizzybec.jpg);"></div>
+                    <a class="name" href="/about.me.html">tizzybec</a>
+                    <div class="intro">c&#43;&#43;程序员，scala/luajit学习中...</div>
+                </section>
+                <section class="recommend">
+                    
+                    <section class="nav prev more">
+                        <div class="head">上篇文章</div>
+                        <a class="link" href="/post/2016/04/17/thinking-reactive-programming.html">响应式编程随想（ReactiveX）</a>
+                    </section>
+                    
+                    
+                    <section class="nav next more">
+                        <div class="head">下篇文章</div>
+                        <a class="link" href="/post/2016/03/29/xxx-native-desktop.html">关于 xxx-native-desktop 的思考</a>
+                    </section>
+                    
+                </section>
+                <section id="disqus_thread"></section>
+            </article>
+        </article>
+        <footer class="footer">
+    <span class="copyright">
+        tizzybec的博客 ©
+        <script type="text/javascript">
+            document.write(new Date().getFullYear());
+        </script>
+    </span>
+    
+    <span class="publish">Powered by <a href="http://www.inkpaper.io/" target="_blank">Ink</a></span>
+</footer>
+        <script src="/js/jquery-1.11.2.min.js"></script>
+        <script src="/js/highlight.pack.js"></script>
+        <script src="/js/jquery.unveil.js"></script>
+        <script src="/js/index.js"></script>
+        <script type="text/javascript">
+            (function() {
+                var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                dsq.src = '//tizzybec.disqus.com/embed.js';
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+            })();
+        </script>
+    </body>
+</html>
