@@ -5,6 +5,10 @@ copy:
     - robots.txt
 # I18n Support
 lang:
+    about:
+        en: ABOUT
+        zh-cn: 关于
+        zh-tw: 關於
     archive:
         en: ARCHIVE
         zh-cn: 归档
