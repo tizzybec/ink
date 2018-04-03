@@ -5,3 +5,5 @@ release
 debian
 npm-debug.log
 editor_old
+/template/public/*.DS_Store
+/template/.vs

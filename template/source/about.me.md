@@ -4,8 +4,16 @@ author: me
 
 ---
 
-## 纸小墨
+## tizzybec
 
-构建只为纯粹书写的博客。
+c++程序员，scala/luajit学习中...
 
-[http://www.chole.io/](http://www.chole.io/)
+github: [github.com/tizzybec](https://github.com/tizzybec)
+
+git@oschina: [gitee.com/tizzybec](http://gitee.com/tizzybec)
+
+weibo：[tizzybec@weibo](http://www.weibo.com/1907586951)
+
+email: [tizzybec at outlook.com](mailto:tizzybec@outlook.com)
+
+[http://www.tizzybec.com/](http://www.tizzybec.com/)

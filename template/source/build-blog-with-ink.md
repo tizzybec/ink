@@ -36,6 +36,13 @@ preview: ink是一款简洁的静态博客构建工具，结合github pages能�
 - 运行`ink preview $GOPATH/src/github.com/tizzybec/ink/template`后，按控制台提示打开浏览器即可预览
 - 切换到工作目录为`$GOPATH/src/github.com/tizzybec/ink/template`，在source目录下编写markdown文件，运行`ink build`生成博客内容，在浏览器预览中能看到实时的排版效果
 
+更新windows下操作
+
+- `git clone github.com/tizzzybec/ink`
+- `go build`
+- `.\ink.exe preview templates`
+- `.\ink.exe build templates`
+
 #### 编辑`config.yml`，参照注释进行常用信息的修改
 
 ``` yaml
