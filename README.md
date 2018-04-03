@@ -2,10 +2,17 @@
 
 InkPaper is an static blog generator developed by Golang, No dependencies, Cross platform, Easy use, Fast build, Elegant theme.
 
-![InkPaper - An Elegant Static Blog Generator](template/source/images/ink-en.png)
+[![release](https://img.shields.io/badge/release-v2017--02--25-blue.svg)](http://www.chole.io/)
+[![apm](https://img.shields.io/badge/license-CC%20BY--NC%204.0-blue.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
+
+
+![InkPaper - An Elegant Static Blog Generator](template/source/images/example-en.png)
 
 ### Quick Start
-- Download & Extract [Ink](http://www.inkpaper.io/), Run `ink preview`
+- Download & Extract [Ink](http://www.chole.io/)，Run `ink preview`
+
+  > Tips：Linux/macOS, use `./ink preview`
+
 - Open `http://localhost:8000` in browser to preview
 
 ### Website Configuration
@@ -17,9 +24,11 @@ site:
     subtitle: Website Subtitle
     limit: Max Article Count Per Page
     theme: Website Theme Directory
-    disqus: Disqus Plugin Username
+    comment: Comment Plugin Variable (Default is disqus username)
     root: Website Root Path #Optional
-    lang: Website language #Support en, zh, Configurable in theme/lang.yml
+    lang: Website Language #Support en, zh, ru, ja, Configurable in theme/lang.yml
+    url: Website URL #For RSS Generating
+    link: Article Link Scheme #Default Is {title}.html，Support {year},{month},{day},{hour},{minute},{second},{title} Variables
 
 authors:
     AuthorID:
@@ -28,6 +37,7 @@ authors:
         avatar: Author Avatar Path
 
 build:
+    output: Build Output Directory #Optional, Default is "public"
     port: Preview Port
     copy:
         - Copied Files When Build
@@ -40,16 +50,18 @@ Create any `.md` file in `source` directory (Support subdirectory), use format:
 
 ``` yaml
 title: Article Title
-date: Year-Month-Day Hour:Minute:Second #Created Time, Support TimeZone, such as " +0800"
-update: Year-Month-Day Hour:Minute:Second #Updated Time, Optional, Support TimeZone, such as " +0800"
+date: Year-Month-Day Hour:Minute:Second #Created Time，Support TimeZone, such as " +0800"
+update: Year-Month-Day Hour:Minute:Second #Updated Time，Optional，Support TimeZone, such as " +0800"
 author: AuthorID
 cover: Article Cover Path #Optional
-draft: true #If Draft, Optional
-top: Place article to top #Optional
+draft: false #If Draft，Optional
+top: false #Place article to top, Optional
 preview: Article Preview，Also use <!--more--> to split in body #Optional
 tags: #Optional
     - Tag1
     - Tag2
+type: post #Specify type is post or page, Optional
+hide: false #Hide article，can be accessed via URL, Optional
 
 ---
 
@@ -60,13 +72,13 @@ Markdown Format's Body
 - Run `ink publish` in blog directory to automatically build and publish
 - Or run `ink build` to manually deploy generated `public` directory
 
-> **Tips**: When `source` directory changed, `ink preview` will automatically rebuild blog, refresh browser to update
+> **Tips**: When `source` directory changed，`ink preview` will automatically rebuild blog，refresh browser to update
 
 ## Customization
 
 ### Modify Theme
 
-Default theme use coffee & less build, after modify that files, run `gulp` in `theme` to recompile, run `ink` will copy js and css directory to public directory;
+Default theme placed in `theme` folder, run `npm install` and `npm run build` to rebuild in this folder.
 
 page `page.html` (article list) and `article.html` (article), use variable with [Golang Template](http://golang.org/pkg/html/template/) syntax.
 
@@ -96,6 +108,15 @@ Docker Build (Example)
 2. Build image `docker build -t ink .` in source directory
 3. Run container `docker run -p 8888:80 ink`
 
+## Theme
+
+- Dark(Official Theme): [https://github.com/InkProject/ink-theme-dark](https://github.com/InkProject/ink-theme-dark)
+- simple: [https://github.com/myiq/ink-simple](https://github.com/myiq/ink-simple)
+
+## Related Toturials
+
+- [Automatically deploy your Ink blog to GitHub pages wiht Travis CI](http://www.shery.me/blog/travis-ci.html)
+
 ## License
 [CC Attribution-NonCommercial License 4.0](https://creativecommons.org/licenses/by-nc/4.0/)
 
@@ -105,6 +126,8 @@ Docker Build (Example)
 
 ## Change Log
 
+- [2017-02-25] Fix bugs and merge some PRs
+- [2016-07-11] Fix bugs and merge many PRs
 - [2015-08-15] Bug fix, support RSS feed, improve theme
 - [2015-07-04] Bug fix, improve theme, support top, i18n, subtemplate
 - [2015-06-04] Build more platform, add archive and tag page
@@ -113,14 +136,12 @@ Docker Build (Example)
 ## Develop Plan
 
 - Improve Theme
-- Support RSS Feed
-- Extension And Plugin
+- InkPaper Editor
 
 ## They are using
 
-- [http://www.inkpaper.io/blog/](http://www.inkpaper.io/blog/)
-- [https://hyper.sh/blog/](https://hyper.sh/blog/)
-- [http://wangsiyi.net/](http://wangsiyi.net/)
-- [http://lubia.cn/](http://lubia.cn/)
-- [http://ikevin.in/](http://ikevin.in/)
-- [http://bluepi0j.me/](http://bluepi0j.me/)
+- [http://www.chole.io/blog/](http://www.chole.io/blog/)
+- [http://blog.hyper.sh/](http://blog.hyper.sh/)
+- [http://wangxu.me/](http://wangxu.me/)
+- [http://whzecomjm.com/](http://whzecomjm.com/)
+- [http://www.shery.me/blog/](http://www.shery.me/blog/)

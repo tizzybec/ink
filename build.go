@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/gorilla/feeds"
 	"html/template"
 	"io/ioutil"
 	"os"
@@ -11,6 +10,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/facebookgo/symwalk"
 )
 
 // Parse config
@@ -73,11 +74,13 @@ func (v Collections) Less(i, j int) bool {
 func Build() {
 	startTime := time.Now()
 	var articles = make(Collections, 0)
+	var visibleArticles = make(Collections, 0)
+	var pages = make(Collections, 0)
 	var tagMap = make(map[string]Collections)
 	var archiveMap = make(map[string]Collections)
 	// Parse config
 	themePath = filepath.Join(rootPath, globalConfig.Site.Theme)
-	publicPath = filepath.Join(rootPath, "public")
+	publicPath = filepath.Join(rootPath, globalConfig.Build.Output)
 	sourcePath = filepath.Join(rootPath, "source")
 	// Append all partial html
 	var partialTpl string
@@ -110,29 +113,31 @@ func Build() {
 		}
 	}
 	// Find all .md to generate article
-	filepath.Walk(sourcePath, func(path string, info os.FileInfo, err error) error {
+	symwalk.Walk(sourcePath, func(path string, info os.FileInfo, err error) error {
 		fileExt := strings.ToLower(filepath.Ext(path))
 		if fileExt == ".md" {
 			// Parse markdown data
-			article := ParseMarkdown(path)
-			if article.Draft {
+			article := ParseArticle(path)
+			if article == nil || article.Draft {
 				return nil
 			}
-			// Generate page name
-			fileName := strings.TrimSuffix(strings.ToLower(filepath.Base(path)), ".md")
-			Log("Building " + fileName)
-			// Generate directory
-			unixTime := time.Unix(article.Date, 0)
-			directory := unixTime.Format("post/2006/01/02/")
+			Log("Building " + article.Link)
+			// Generate file path
+			directory := filepath.Dir(article.Link)
 			err := os.MkdirAll(filepath.Join(publicPath, directory), 0777)
 			if err != nil {
 				Fatal(err.Error())
 			}
-			outPath := directory + fileName + ".html"
-			// Generate file path
-			article.Link = outPath
-			article.GlobalConfig = *globalConfig
+			// Append to collections
+			if article.Type == "page" {
+				pages = append(pages, *article)
+				return nil
+			}
 			articles = append(articles, *article)
+			if article.Hide {
+				return nil
+			}
+			visibleArticles = append(visibleArticles, *article)
 			// Get tags info
 			for _, tag := range article.Tags {
 				if _, ok := tagMap[tag]; !ok {
@@ -141,13 +146,13 @@ func Build() {
 				tagMap[tag] = append(tagMap[tag], *article)
 			}
 			// Get archive info
-			dateYear := unixTime.Format("2006")
+			dateYear := article.Time.Format("2006")
 			if _, ok := archiveMap[dateYear]; !ok {
 				archiveMap[dateYear] = make(Collections, 0)
 			}
 			articleInfo := ArticleInfo{
 				DetailDate: article.Date,
-				Date:       unixTime.Format("2006-01-02"),
+				Date:       article.Time.Format("2006-01-02"),
 				Title:      article.Title,
 				Link:       article.Link,
 				Top:        article.Top,
@@ -156,22 +161,30 @@ func Build() {
 		}
 		return nil
 	})
-	if len(articles) == 0 {
+	if len(visibleArticles) == 0 {
 		Fatal("Must be have at least one article")
 	}
 	// Sort by date
 	sort.Sort(articles)
-	// Generate rss page
+	sort.Sort(visibleArticles)
+	// Generate RSS page
 	wg.Add(1)
-	go GenerateRSS(articles)
-	// Render article
+	go GenerateRSS(visibleArticles)
+	// Generate article list JSON
+	wg.Add(1)
+	go GenerateJSON(visibleArticles)
+	// Render articles
 	wg.Add(1)
 	go RenderArticles(articleTpl, articles)
+	// Render pages
+	wg.Add(1)
+	go RenderArticles(articleTpl, pages)
 	// Generate article list pages
 	wg.Add(1)
-	go RenderArticleList("", articles, "")
+	go RenderArticleList("", visibleArticles, "")
 	// Generate article list pages by tag
 	for tagName, articles := range tagMap {
+		sort.Sort(articles)
 		wg.Add(1)
 		go RenderArticleList(filepath.Join("tag", tagName), articles, tagName)
 	}
@@ -189,7 +202,7 @@ func Build() {
 	sort.Sort(archives)
 	wg.Add(1)
 	go RenderPage(archiveTpl, map[string]interface{}{
-		"Total":   len(articles),
+		"Total":   len(visibleArticles),
 		"Archive": archives,
 		"Site":    globalConfig.Site,
 		"I18n":    globalConfig.I18n,
@@ -202,7 +215,7 @@ func Build() {
 			articleValue := article.(Article)
 			articleInfos = append(articleInfos, ArticleInfo{
 				DetailDate: articleValue.Date,
-				Date:       time.Unix(articleValue.Date, 0).Format("2006-01-02"),
+				Date:       articleValue.Time.Format("2006-01-02"),
 				Title:      articleValue.Title,
 				Link:       articleValue.Link,
 				Top:        articleValue.Top,
@@ -220,7 +233,7 @@ func Build() {
 	sort.Sort(Collections(tags))
 	wg.Add(1)
 	go RenderPage(tagTpl, map[string]interface{}{
-		"Total": len(articles),
+		"Total": len(visibleArticles),
 		"Tag":   tags,
 		"Site":  globalConfig.Site,
 		"I18n":  globalConfig.I18n,
@@ -238,70 +251,35 @@ func Build() {
 		}
 	}
 	// Copy static files
-	Log("Copying files")
 	Copy()
 	wg.Wait()
 	endTime := time.Now()
 	usedTime := endTime.Sub(startTime)
-	fmt.Printf("\nBuild finish in public folder (%v)\n", usedTime)
-}
-
-// Generate rss page
-func GenerateRSS(articles Collections) {
-	defer wg.Done()
-	var feedArticles Collections
-	if len(articles) < globalConfig.Site.Limit {
-		feedArticles = articles
-	} else {
-		feedArticles = articles[0:globalConfig.Site.Limit]
-	}
-	if globalConfig.Site.Url != "" {
-		feed := &feeds.Feed{
-			Title:       globalConfig.Site.Title,
-			Link:        &feeds.Link{Href: globalConfig.Site.Url},
-			Description: globalConfig.Site.Subtitle,
-			Author:      &feeds.Author{globalConfig.Site.Title, ""},
-			Created:     time.Now(),
-		}
-		feed.Items = make([]*feeds.Item, 0)
-		for _, item := range feedArticles {
-			article := item.(Article)
-			feed.Items = append(feed.Items, &feeds.Item{
-				Title:       article.Title,
-				Link:        &feeds.Link{Href: filepath.Join(globalConfig.Site.Url, article.Link)},
-				Description: article.Preview,
-				Author:      &feeds.Author{article.Author.Name, ""},
-				Created:     time.Unix(article.Date, 0),
-				Updated:     time.Unix(article.Update, 0),
-			})
-		}
-		if atom, err := feed.ToAtom(); err == nil {
-			err := ioutil.WriteFile(filepath.Join(publicPath, "atom.xml"), []byte(atom), 0644)
-			if err != nil {
-				Fatal(err.Error())
-			}
-		} else {
-			Fatal(err.Error())
-		}
-	}
+	fmt.Printf("\nFinished to build in public folder (%v)\n", usedTime)
 }
 
 // Copy static files
 func Copy() {
 	srcList := globalConfig.Build.Copy
 	for _, source := range srcList {
-		srcPath := filepath.Join(rootPath, source)
-		file, err := os.Stat(srcPath)
-		if err != nil {
-			Fatal("Not exist: " + srcPath)
-		}
-		fileName := file.Name()
-		desPath := filepath.Join(publicPath, fileName)
-		wg.Add(1)
-		if file.IsDir() {
-			go CopyDir(srcPath, desPath)
+		if matches, err := filepath.Glob(filepath.Join(rootPath, source)); err == nil {
+			for _, srcPath := range matches {
+				Log("Copying " + srcPath)
+				file, err := os.Stat(srcPath)
+				if err != nil {
+					Fatal("Not exist: " + srcPath)
+				}
+				fileName := file.Name()
+				desPath := filepath.Join(publicPath, fileName)
+				wg.Add(1)
+				if file.IsDir() {
+					go CopyDir(srcPath, desPath)
+				} else {
+					go CopyFile(srcPath, desPath)
+				}
+			}
 		} else {
-			go CopyFile(srcPath, desPath)
+			Fatal(err.Error())
 		}
 	}
 }

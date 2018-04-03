@@ -1,5 +1,7 @@
 ink
+ink.exe
 public
 release
 debian
-.swp
+npm-debug.log
+editor_old

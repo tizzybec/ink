@@ -3,24 +3,23 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/InkProject/ink.go"
-	"github.com/codegangsta/cli"
-	"github.com/go-fsnotify/fsnotify"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	"github.com/codegangsta/cli"
+	"github.com/facebookgo/symwalk"
+	"gopkg.in/yaml.v2"
 )
 
 const (
-	VERSION      = "Beta (2015-08-15)"
+	VERSION      = "RELEASE 2017-09-24"
 	DEFAULT_ROOT = "blog"
 )
 
-var watcher *fsnotify.Watcher
 var globalConfig *GlobalConfig
 var rootPath string
 
@@ -35,39 +34,54 @@ func main() {
 		{
 			Name:  "build",
 			Usage: "Generate blog to public folder",
-			Action: func(c *cli.Context) {
+			Action: func(c *cli.Context) error {
 				ParseGlobalConfigByCli(c, false)
 				Build()
+				return nil
 			},
 		},
 		{
 			Name:  "preview",
 			Usage: "Run in server mode to preview blog",
-			Action: func(c *cli.Context) {
+			Action: func(c *cli.Context) error {
 				ParseGlobalConfigByCli(c, true)
 				Build()
 				Watch()
-				Server()
+				Serve()
+				return nil
 			},
 		},
 		{
 			Name:  "publish",
 			Usage: "Generate blog to public folder and publish",
-			Action: func(c *cli.Context) {
+			Action: func(c *cli.Context) error {
 				ParseGlobalConfigByCli(c, false)
 				Build()
 				Publish()
+				return nil
+			},
+		},
+		{
+			Name:  "serve",
+			Usage: "Run in server mode to serve blog",
+			Action: func(c *cli.Context) error {
+				ParseGlobalConfigByCli(c, true)
+				Build()
+				Serve()
+				return nil
 			},
 		},
 		{
 			Name:  "convert",
 			Usage: "Convert Jekyll/Hexo post format to Ink format (Beta)",
-			Action: func(c *cli.Context) {
+			Action: func(c *cli.Context) error {
 				Convert(c)
+				return nil
 			},
 		},
 	}
 	app.Run(os.Args)
+	os.Exit(exitCode)
 }
 
 func ParseGlobalConfigByCli(c *cli.Context, develop bool) {
@@ -76,63 +90,20 @@ func ParseGlobalConfigByCli(c *cli.Context, develop bool) {
 	} else {
 		rootPath = "."
 	}
-	ParseGlobalConfig(rootPath, develop)
+	ParseGlobalConfigWrap(rootPath, develop)
 	if globalConfig == nil {
-		ParseGlobalConfig(DEFAULT_ROOT, develop)
+		ParseGlobalConfigWrap(DEFAULT_ROOT, develop)
 		if globalConfig == nil {
 			Fatal("Parse config.yml failed, please specify a valid path")
 		}
 	}
 }
 
-func ParseGlobalConfig(root string, develop bool) {
+func ParseGlobalConfigWrap(root string, develop bool) {
 	rootPath = root
-	globalConfig = ParseConfig(filepath.Join(rootPath, "config.yml"), develop)
+	globalConfig = ParseGlobalConfig(filepath.Join(rootPath, "config.yml"), develop)
 	if globalConfig == nil {
 		return
-	}
-}
-
-func Server() {
-	port := globalConfig.Build.Port
-	if port == "" {
-		port = "8000"
-	}
-	app := ink.New()
-	app.Get("*", ink.Static(filepath.Join(rootPath, "public")))
-	app.Head("*", ink.Static(filepath.Join(rootPath, "public")))
-	Log("Open http://localhost:" + port + "/ to preview")
-	app.Listen("0.0.0.0:" + port)
-}
-
-func Watch() {
-	watcher, _ = fsnotify.NewWatcher()
-	// Listen watched file change event
-	go func() {
-		for {
-			select {
-			case event := <-watcher.Events:
-				if event.Op == fsnotify.Write {
-					// Handle when file change
-					Build()
-				}
-			case err := <-watcher.Errors:
-				Log(err.Error())
-			}
-		}
-	}()
-	var dirs = []string{"source"}
-	for _, source := range dirs {
-		dirPath := filepath.Join(rootPath, source)
-		filepath.Walk(dirPath, func(path string, f os.FileInfo, err error) error {
-			if f.IsDir() {
-				// Defer watcher.Close()
-				if err := watcher.Add(path); err != nil {
-					Log(err.Error())
-				}
-			}
-			return nil
-		})
 	}
 }
 
@@ -148,7 +119,7 @@ func Publish() {
 		flag = "-c"
 	}
 	cmd := exec.Command(shell, flag, command)
-	cmd.Dir = filepath.Join(rootPath, "public")
+	cmd.Dir = filepath.Join(rootPath, globalConfig.Build.Output)
 	// Start print stdout and stderr of process
 	stdout, _ := cmd.StdoutPipe()
 	stderr, _ := cmd.StderrPipe()
@@ -190,7 +161,7 @@ func Convert(c *cli.Context) {
 	}
 	// Parse Jekyll/Hexo post file
 	count := 0
-	filepath.Walk(sourcePath, func(path string, f os.FileInfo, err error) error {
+	symwalk.Walk(sourcePath, func(path string, f os.FileInfo, err error) error {
 		fileExt := strings.ToLower(filepath.Ext(path))
 		if fileExt == ".md" || fileExt == ".html" {
 			// Read data from file

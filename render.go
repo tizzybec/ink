@@ -1,11 +1,15 @@
 package main
 
 import (
+	"encoding/json"
 	"html/template"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
+	"time"
+
+	"github.com/gorilla/feeds"
 )
 
 type Data interface{}
@@ -14,11 +18,6 @@ type RenderArticle struct {
 	Article
 	Next *Article
 	Prev *Article
-}
-
-type RenderData struct {
-	lang Lang
-	Data
 }
 
 // Compile html template
@@ -82,6 +81,46 @@ func RenderArticles(tpl template.Template, articles Collections) {
 	}
 }
 
+// Generate rss page
+func GenerateRSS(articles Collections) {
+	defer wg.Done()
+	var feedArticles Collections
+	if len(articles) < globalConfig.Site.Limit {
+		feedArticles = articles
+	} else {
+		feedArticles = articles[0:globalConfig.Site.Limit]
+	}
+	if globalConfig.Site.Url != "" {
+		feed := &feeds.Feed{
+			Title:       globalConfig.Site.Title,
+			Link:        &feeds.Link{Href: globalConfig.Site.Url},
+			Description: globalConfig.Site.Subtitle,
+			Author:      &feeds.Author{globalConfig.Site.Title, ""},
+			Created:     time.Now(),
+		}
+		feed.Items = make([]*feeds.Item, 0)
+		for _, item := range feedArticles {
+			article := item.(Article)
+			feed.Items = append(feed.Items, &feeds.Item{
+				Title:       article.Title,
+				Link:        &feeds.Link{Href: globalConfig.Site.Url + "/" + article.Link},
+				Description: string(article.Preview),
+				Author:      &feeds.Author{article.Author.Name, ""},
+				Created:     article.Time,
+				Updated:     article.MTime,
+			})
+		}
+		if atom, err := feed.ToAtom(); err == nil {
+			err := ioutil.WriteFile(filepath.Join(publicPath, "atom.xml"), []byte(atom), 0644)
+			if err != nil {
+				Fatal(err.Error())
+			}
+		} else {
+			Fatal(err.Error())
+		}
+	}
+}
+
 // Generate article list page
 func RenderArticleList(rootPath string, articles Collections, tagName string) {
 	defer wg.Done()
@@ -123,6 +162,7 @@ func RenderArticleList(rootPath string, articles Collections, tagName string) {
 		var data = map[string]interface{}{
 			"Articles": articles[first:count],
 			"Site":     globalConfig.Site,
+			"Develop":  globalConfig.Develop,
 			"Page":     i + 1,
 			"Total":    page,
 			"Prev":     prev,
@@ -133,4 +173,23 @@ func RenderArticleList(rootPath string, articles Collections, tagName string) {
 		wg.Add(1)
 		go RenderPage(pageTpl, data, outPath)
 	}
+}
+
+// Generate article list JSON
+func GenerateJSON(articles Collections) {
+	defer wg.Done()
+	datas := make([]map[string]interface{}, 0)
+	for i, _ := range articles {
+		article := articles[i].(Article)
+		var data = map[string]interface{}{
+			"title":   article.Title,
+			"content": article.Markdown,
+			"preview": string(article.Preview),
+			"link":    article.Link,
+			"cover":   article.Cover,
+		}
+		datas = append(datas, data)
+	}
+	str, _ := json.Marshal(datas)
+	ioutil.WriteFile(filepath.Join(publicPath, "index.json"), []byte(str), 0644)
 }

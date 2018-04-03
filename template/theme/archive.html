@@ -1,12 +1,10 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=1, minimum-scale=1, maximum-scale=1">
+        {{template "head" .}}
         <meta name="keywords" content="{{.Site.Title}}, {{.Site.Subtitle}}">
         <meta name="description" content="{{.Site.Subtitle}}">
-        <link rel="stylesheet" href="{{.Site.Root}}/css/index.css">
+        <meta name="author" content="{{.Author.Name}}">
         <title>{{.Site.Title}}</title>
         <script>
           var _hmt = _hmt || [];
@@ -27,7 +25,7 @@
                     <h2 class="subtitle">{{.Site.Subtitle}}</h2>
                 </header>
                 <header class="header">
-                    <span class="title">{{i18n "archive"}}</span>
+                    <span class="title">{{i18n "archive"}} -</span>
                     <span class="subtitle">{{.Total}} {{i18n "articles"}}</span>
                 </header>
                 <ul class="archive-list">
@@ -49,6 +47,5 @@
         </article>
         {{template "footer" .}}
     </body>
-    <script src="{{.Site.Root}}/js/jquery-1.11.2.min.js"></script>
-    <script src="{{.Site.Root}}/js/index.js"></script>
+    <script src="{{.Site.Root}}/bundle/index.js"></script>
 </html>
